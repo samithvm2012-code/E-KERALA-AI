@@ -1,4 +1,4 @@
-.<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -65,7 +65,6 @@
     </main>
 
     <script>
-        // Check saved key on load
         window.onload = function() {
             const savedKey = localStorage.getItem('gemini_api_key');
             if (savedKey) {
@@ -128,8 +127,8 @@
             chatBox.scrollTop = chatBox.scrollHeight;
 
             try {
-                // Call Gemini Live API
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+                // Call Gemini API using gemini-1.5-flash
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -145,9 +144,13 @@
                 const data = await response.json();
                 document.getElementById('loading').remove();
 
-                let aiText = "Sorry, I couldn't process that request. Please check your API Key.";
-                if (data.candidates && data.candidates[0].content.parts[0].text) {
+                let aiText = "";
+                if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts[0].text) {
                     aiText = data.candidates[0].content.parts[0].text;
+                } else if (data.error && data.error.message) {
+                    aiText = "API Error: " + data.error.message;
+                } else {
+                    aiText = "Sorry, I couldn't process that request. Please check your API Key.";
                 }
 
                 // Render AI Response
@@ -164,7 +167,7 @@
 
             } catch (err) {
                 if (document.getElementById('loading')) document.getElementById('loading').remove();
-                alert("Error calling Gemini API. Make sure your key is valid.");
+                alert("Error connecting to Gemini API: " + err.message);
             }
         }
 
